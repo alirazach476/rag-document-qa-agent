@@ -14,6 +14,7 @@ from rag_qa.config import Settings, get_settings
 from rag_qa.providers import get_chat_model
 from rag_qa.retrieve import retrieve_documents
 from rag_qa.store import load_or_build_vectorstore
+from rag_qa.text_normalize import normalize_text
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +31,8 @@ def format_docs(docs: list[Document]) -> str:
     """Format retrieved chunks for the LLM prompt."""
     parts = []
     for i, doc in enumerate(docs, start=1):
-        source = doc.metadata.get("source", "unknown")
-        parts.append(f"[Source {i}: {source}]\n{doc.page_content}")
+        source = normalize_text(str(doc.metadata.get("source", "unknown")))
+        parts.append(f"[Source {i}: {source}]\n{normalize_text(doc.page_content or '')}")
     return "\n\n".join(parts)
 
 
@@ -74,7 +75,10 @@ def ask(
         raise ValueError("Question cannot be empty.")
 
     store = load_or_build_vectorstore(settings=cfg)
+    question = normalize_text(question)
     sources = retrieve_documents(store, question, cfg)
+    for doc in sources:
+        doc.page_content = normalize_text(doc.page_content or "")
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -85,5 +89,6 @@ def ask(
     answer = (prompt | get_chat_model(cfg) | StrOutputParser()).invoke(
         {"context": format_docs(sources), "question": question}
     )
+    answer = normalize_text(answer or "")
     logger.info("Answered question with %d source chunk(s)", len(sources))
     return answer, sources

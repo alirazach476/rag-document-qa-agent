@@ -12,6 +12,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from rag_qa.config import Settings, get_settings
 from rag_qa.ingest import load_documents
 from rag_qa.providers import get_embeddings
+from rag_qa.text_normalize import normalize_text
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ def build_vectorstore(
         progress(0, total, "Loading embedding model...")
 
     embeddings = get_embeddings(cfg)
-    texts = [c.page_content for c in chunks]
+    texts = [normalize_text(c.page_content or "") for c in chunks]
     metadatas = [c.metadata for c in chunks]
 
     if progress:

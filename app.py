@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-import os
+# Must run before Streamlit / FastEmbed / HuggingFace print progress.
+import rag_qa.encoding_fix  # noqa: F401
+
 import shutil
-import sys
 import tempfile
 from dataclasses import replace
 from pathlib import Path
-
-# Streamlit Cloud / Linux images sometimes default to ASCII locales.
-os.environ.setdefault("PYTHONUTF8", "1")
-os.environ.setdefault("PYTHONIOENCODING", "utf-8")
-try:
-    sys.stdout.reconfigure(encoding="utf-8")
-    sys.stderr.reconfigure(encoding="utf-8")
-except Exception:
-    pass
 
 import streamlit as st
 

@@ -10,6 +10,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_core.documents import Document
 
 from rag_qa.config import Settings, get_settings
+from rag_qa.text_normalize import normalize_text
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def _load_pdf(path: Path) -> list[Document]:
                     continue
                 documents.append(
                     Document(
-                        page_content=text,
+                        page_content=normalize_text(text),
                         metadata={"source": str(path), "page": i},
                     )
                 )
@@ -73,6 +74,9 @@ def load_documents(
             documents.extend(_load_pdf(path))
         elif suffix in {".txt", ".md"}:
             documents.extend(TextLoader(str(path), encoding="utf-8").load())
+
+    for doc in documents:
+        doc.page_content = normalize_text(doc.page_content or "")
 
     logger.info("Loaded %d document page(s) from %s", len(documents), root)
     return documents

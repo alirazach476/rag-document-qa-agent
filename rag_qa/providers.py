@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import logging
+import os
 from functools import lru_cache
 from typing import Any
 from urllib.error import URLError
 from urllib.request import urlopen
 
+import rag_qa.encoding_fix  # noqa: F401
 from rag_qa.config import Settings
 
 logger = logging.getLogger(__name__)
@@ -75,6 +77,9 @@ def _cached_local_embeddings(model_name: str, device: str) -> Any:
 @lru_cache(maxsize=4)
 def _cached_fastembed(model_name: str) -> Any:
     """Lightweight CPU embeddings for free cloud deploy (no torch GPU needed)."""
+    # Avoid progress printers that emit Unicode ellipsis under ASCII locales.
+    os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+    os.environ.setdefault("TQDM_DISABLE", "1")
     from langchain_community.embeddings import FastEmbedEmbeddings
 
     return FastEmbedEmbeddings(model_name=model_name)
