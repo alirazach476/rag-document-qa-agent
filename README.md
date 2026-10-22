@@ -147,17 +147,19 @@ Use one of these instead:
 2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
 3. Select the repo, main file `app.py`.
 4. Under advanced settings, set requirements file to `requirements-cloud.txt`.
-5. Add secrets (OpenAI mode — cloud has no Ollama/GPU):
+5. Add secrets — **free Groq key** (no OpenAI credits):
+
+Get a free key at [console.groq.com/keys](https://console.groq.com/keys), then paste:
 
 ```toml
-LLM_PROVIDER = "openai"
-EMBEDDING_BACKEND = "openai"
-OPENAI_API_KEY = "sk-..."
-OPENAI_MODEL = "gpt-4o-mini"
-EMBEDDING_MODEL = "text-embedding-3-small"
+LLM_PROVIDER = "groq"
+EMBEDDING_BACKEND = "fastembed"
+GROQ_API_KEY = "gsk_..."
+GROQ_MODEL = "llama-3.1-8b-instant"
+EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 ```
 
-You need OpenAI credits for cloud deploy.
+Local PC can still use free Ollama + GPU. Cloud uses Groq (free API) + FastEmbed.
 
 ### Railway / Render / Docker
 

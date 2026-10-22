@@ -1,4 +1,4 @@
-"""LLM and embedding providers (local GPU, Ollama, or OpenAI)."""
+"""LLM and embedding providers (local GPU, Ollama, Groq free, or OpenAI)."""
 
 from __future__ import annotations
 
@@ -30,10 +30,7 @@ def check_ollama_reachable(base_url: str) -> None:
 
 @lru_cache(maxsize=4)
 def resolve_torch_device(requested: str) -> str:
-    """Pick cuda when available unless the user forced cpu.
-
-    Cached so Streamlit reruns do not re-import torch on every paint.
-    """
+    """Pick cuda when available unless the user forced cpu."""
     requested = (requested or "auto").lower()
     if requested == "cpu":
         return "cpu"
@@ -48,7 +45,6 @@ def resolve_torch_device(requested: str) -> str:
         except Exception:  # noqa: BLE001
             logger.warning("CUDA check failed; falling back to CPU embeddings")
         if requested in {"cuda", "gpu"}:
-            # Prefer showing UI fast: fall back instead of crashing first paint.
             logger.warning("CUDA requested but unavailable; using CPU")
             return "cpu"
     return "cpu"
@@ -76,6 +72,14 @@ def _cached_local_embeddings(model_name: str, device: str) -> Any:
     )
 
 
+@lru_cache(maxsize=4)
+def _cached_fastembed(model_name: str) -> Any:
+    """Lightweight CPU embeddings for free cloud deploy (no torch GPU needed)."""
+    from langchain_community.embeddings import FastEmbedEmbeddings
+
+    return FastEmbedEmbeddings(model_name=model_name)
+
+
 def get_embeddings(settings: Settings) -> Any:
     """Return the embedding model for the configured backend."""
     settings.require_provider_ready()
@@ -84,6 +88,9 @@ def get_embeddings(settings: Settings) -> Any:
     if backend == "local":
         device = resolve_torch_device(settings.embedding_device)
         return _cached_local_embeddings(settings.embedding_model, device)
+
+    if backend == "fastembed":
+        return _cached_fastembed(settings.embedding_model)
 
     if backend == "ollama":
         check_ollama_reachable(settings.ollama_base_url)
@@ -94,9 +101,12 @@ def get_embeddings(settings: Settings) -> Any:
             base_url=settings.ollama_base_url,
         )
 
-    from langchain_openai import OpenAIEmbeddings
+    if backend == "openai":
+        from langchain_openai import OpenAIEmbeddings
 
-    return OpenAIEmbeddings(model=settings.embedding_model)
+        return OpenAIEmbeddings(model=settings.embedding_model)
+
+    raise ValueError(f"Unsupported embedding backend: {backend}")
 
 
 def get_chat_model(settings: Settings) -> Any:
@@ -109,6 +119,17 @@ def get_chat_model(settings: Settings) -> Any:
         return ChatOllama(
             model=settings.ollama_model,
             base_url=settings.ollama_base_url,
+            temperature=settings.temperature,
+        )
+
+    if settings.provider == "groq":
+        from langchain_openai import ChatOpenAI
+
+        # Groq is OpenAI-compatible and has a free API tier.
+        return ChatOpenAI(
+            model=settings.groq_model,
+            api_key=settings.groq_api_key,
+            base_url="https://api.groq.com/openai/v1",
             temperature=settings.temperature,
         )
 

@@ -12,8 +12,8 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-PROVIDERS = frozenset({"ollama", "openai"})
-EMBEDDING_BACKENDS = frozenset({"auto", "local", "ollama", "openai"})
+PROVIDERS = frozenset({"ollama", "openai", "groq"})
+EMBEDDING_BACKENDS = frozenset({"auto", "local", "ollama", "openai", "fastembed"})
 
 
 def _env(name: str, default: str = "") -> str:
@@ -39,6 +39,8 @@ class Settings:
     embedding_backend: str = "auto"
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.1-8b-instant"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "llama3.2"
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -57,7 +59,11 @@ class Settings:
 
     @property
     def chat_model_name(self) -> str:
-        return self.ollama_model if self.provider == "ollama" else self.openai_model
+        if self.provider == "ollama":
+            return self.ollama_model
+        if self.provider == "groq":
+            return self.groq_model
+        return self.openai_model
 
     @property
     def resolved_embedding_backend(self) -> str:
@@ -65,25 +71,33 @@ class Settings:
             return self.embedding_backend
         if self.provider == "openai":
             return "openai"
+        if self.provider == "groq":
+            return "fastembed"
         return "local"
 
     def require_provider_ready(self) -> None:
         """Fail fast when the selected provider is not configured."""
         if self.provider not in PROVIDERS:
             raise ValueError(
-                f"Unknown LLM_PROVIDER={self.provider!r}. Use 'ollama' or 'openai'."
+                f"Unknown LLM_PROVIDER={self.provider!r}. "
+                "Use 'ollama', 'groq' (free), or 'openai'."
             )
         if self.embedding_backend not in EMBEDDING_BACKENDS:
             raise ValueError(
                 f"Unknown EMBEDDING_BACKEND={self.embedding_backend!r}. "
-                "Use auto, local, ollama, or openai."
+                "Use auto, local, fastembed, ollama, or openai."
             )
         if self.provider == "openai" or self.resolved_embedding_backend == "openai":
             if not self.openai_api_key or self.openai_api_key.startswith("sk-your-key"):
                 raise ValueError(
-                    "OPENAI_API_KEY is missing or still set to the placeholder. "
-                    "Copy .env.example to .env and add a valid key, "
-                    "or set LLM_PROVIDER=ollama with EMBEDDING_BACKEND=local."
+                    "OPENAI_API_KEY is missing. For a free cloud deploy use "
+                    "LLM_PROVIDER=groq with a free key from https://console.groq.com/keys"
+                )
+        if self.provider == "groq":
+            if not self.groq_api_key or self.groq_api_key.startswith("gsk_your"):
+                raise ValueError(
+                    "GROQ_API_KEY is missing. Get a free key at "
+                    "https://console.groq.com/keys (no OpenAI credits needed)."
                 )
 
     def require_api_key(self) -> None:
@@ -98,6 +112,8 @@ def _default_embedding_model(backend: str) -> str:
         return "text-embedding-3-small"
     if backend == "ollama":
         return "nomic-embed-text"
+    if backend == "fastembed":
+        return "BAAI/bge-small-en-v1.5"
     return "sentence-transformers/all-MiniLM-L6-v2"
 
 
@@ -112,16 +128,22 @@ def get_settings() -> Settings:
     """Build settings from environment variables / Streamlit secrets."""
     provider = _env("LLM_PROVIDER", "ollama").strip().lower() or "ollama"
     embedding_backend = _env("EMBEDDING_BACKEND", "auto").strip().lower() or "auto"
-    # Resolve defaults the same way Settings will, for model/path selection.
     resolved = embedding_backend
     if resolved == "auto":
-        resolved = "openai" if provider == "openai" else "local"
+        if provider == "openai":
+            resolved = "openai"
+        elif provider == "groq":
+            resolved = "fastembed"
+        else:
+            resolved = "local"
 
     return Settings(
         provider=provider,
         embedding_backend=embedding_backend,
         openai_api_key=_env("OPENAI_API_KEY").strip(),
         openai_model=_env("OPENAI_MODEL", "gpt-4o-mini").strip(),
+        groq_api_key=_env("GROQ_API_KEY").strip(),
+        groq_model=_env("GROQ_MODEL", "llama-3.1-8b-instant").strip(),
         ollama_base_url=_env("OLLAMA_BASE_URL", "http://127.0.0.1:11434").strip(),
         ollama_model=_env("OLLAMA_MODEL", "llama3.2").strip(),
         embedding_model=_default_embedding_model(resolved),

@@ -72,3 +72,14 @@ def test_unknown_provider_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = get_settings()
     with pytest.raises(ValueError, match="Unknown LLM_PROVIDER"):
         settings.require_provider_ready()
+
+
+def test_groq_free_cloud_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test_key")
+    monkeypatch.delenv("EMBEDDING_BACKEND", raising=False)
+    monkeypatch.delenv("EMBEDDING_MODEL", raising=False)
+    settings = get_settings()
+    settings.require_provider_ready()
+    assert settings.resolved_embedding_backend == "fastembed"
+    assert "bge-small" in settings.embedding_model
