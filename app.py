@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 # Must run before Streamlit / FastEmbed / HuggingFace print progress.
-import rag_qa.encoding_fix  # noqa: F401
+from rag_qa.encoding_fix import apply as _apply_encoding_fix
+
+_apply_encoding_fix()
 
 import shutil
 import tempfile
@@ -11,6 +13,9 @@ from dataclasses import replace
 from pathlib import Path
 
 import streamlit as st
+
+# Streamlit replaces stdout/stderr after import on Community Cloud.
+_apply_encoding_fix()
 
 from rag_qa.config import get_settings
 from rag_qa.providers import check_ollama_reachable, display_device
@@ -307,6 +312,7 @@ if prompt:
 
     with st.chat_message("assistant"):
         try:
+            _apply_encoding_fix()
             with st.spinner("Searching your PDF and composing an answer..."):
                 answer, sources = ask(prompt, settings=session_settings)
             st.markdown(answer)

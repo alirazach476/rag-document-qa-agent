@@ -74,6 +74,9 @@ def ask(
     if not question:
         raise ValueError("Question cannot be empty.")
 
+    from rag_qa.encoding_fix import apply as apply_encoding_fix
+
+    apply_encoding_fix()
     store = load_or_build_vectorstore(settings=cfg)
     question = normalize_text(question)
     sources = retrieve_documents(store, question, cfg)

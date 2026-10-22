@@ -77,9 +77,9 @@ def _cached_local_embeddings(model_name: str, device: str) -> Any:
 @lru_cache(maxsize=4)
 def _cached_fastembed(model_name: str) -> Any:
     """Lightweight CPU embeddings for free cloud deploy (no torch GPU needed)."""
-    # Avoid progress printers that emit Unicode ellipsis under ASCII locales.
-    os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
-    os.environ.setdefault("TQDM_DISABLE", "1")
+    from rag_qa.encoding_fix import apply as apply_encoding_fix
+
+    apply_encoding_fix()
     from langchain_community.embeddings import FastEmbedEmbeddings
 
     return FastEmbedEmbeddings(model_name=model_name)
