@@ -3,10 +3,13 @@
 [![CI](https://github.com/alirazach476/rag-document-qa-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/alirazach476/rag-document-qa-agent/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B)](https://documindrag.streamlit.app/)
 
-A Retrieval-Augmented Generation (RAG) agent built with **LangChain**, **FAISS**, and **Ollama** (free local) or **OpenAI**.
+**Live dashboard:** [https://documindrag.streamlit.app/](https://documindrag.streamlit.app/)
 
-Upload documents, build a local vector index, and ask grounded questions with source citations — via CLI or Streamlit.
+A Retrieval-Augmented Generation (RAG) agent built with **LangChain**, **FAISS**, and **Ollama** (free local), **Groq** (free cloud), or **OpenAI**.
+
+Upload a PDF, build a vector index, and ask grounded questions with source citations — via CLI or Streamlit.
 
 ![Pipeline overview](outputs/pipeline_overview.png)
 
