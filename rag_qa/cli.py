@@ -54,7 +54,7 @@ def main() -> None:
             print("Retrieved chunks:")
             for i, doc in enumerate(sources, start=1):
                 preview = doc.page_content[:120].replace("\n", " ")
-                print(f"  {i}. {doc.metadata.get('source', '?')} — {preview}...")
+                print(f"  {i}. {doc.metadata.get('source', '?')} - {preview}...")
             print()
         except Exception as exc:  # noqa: BLE001
             print(f"Error: {exc}\n")

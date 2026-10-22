@@ -1,4 +1,4 @@
-"""RAG Document Q&A Agent — grounded answers over your documents."""
+"""RAG Document Q&A Agent - grounded answers over your documents."""
 
 from rag_qa.chain import ask, create_rag_chain, format_docs
 from rag_qa.config import Settings, get_settings

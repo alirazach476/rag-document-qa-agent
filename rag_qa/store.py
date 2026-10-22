@@ -45,7 +45,7 @@ def build_vectorstore(
 
     if documents is None:
         if progress:
-            progress(0, 1, "Loading documents…")
+            progress(0, 1, "Loading documents...")
         docs = load_documents(
             settings=cfg,
             progress=(lambda msg: progress(0, 1, msg)) if progress else None,
@@ -59,7 +59,7 @@ def build_vectorstore(
         )
 
     if progress:
-        progress(0, 1, f"Loaded {len(docs)} page(s); splitting…")
+        progress(0, 1, f"Loaded {len(docs)} page(s); splitting...")
 
     chunks = split_documents(docs, settings=cfg)
     total = len(chunks)
@@ -71,21 +71,21 @@ def build_vectorstore(
     )
 
     if progress:
-        progress(0, total, "Loading embedding model…")
+        progress(0, total, "Loading embedding model...")
 
     embeddings = get_embeddings(cfg)
     texts = [c.page_content for c in chunks]
     metadatas = [c.metadata for c in chunks]
 
     if progress:
-        progress(0, total, f"Embedding 0/{total} chunks…")
+        progress(0, total, f"Embedding 0/{total} chunks...")
 
     vectors: list[list[float]] = []
     for start in range(0, total, batch):
         end = min(start + batch, total)
         vectors.extend(embeddings.embed_documents(texts[start:end]))
         if progress:
-            progress(end, total, f"Embedding {end}/{total} chunks…")
+            progress(end, total, f"Embedding {end}/{total} chunks...")
 
     text_embeddings = list(zip(texts, vectors, strict=True))
     store = FAISS.from_embeddings(
@@ -96,13 +96,13 @@ def build_vectorstore(
 
     if persist:
         if progress:
-            progress(total, total, "Saving FAISS index…")
+            progress(total, total, "Saving FAISS index...")
         cfg.vector_dir.mkdir(parents=True, exist_ok=True)
         store.save_local(str(cfg.vector_dir))
         logger.info("Saved FAISS index to %s", cfg.vector_dir)
 
     if progress:
-        progress(total, total, f"Done — indexed {total} chunks.")
+        progress(total, total, f"Done - indexed {total} chunks.")
 
     return store
 

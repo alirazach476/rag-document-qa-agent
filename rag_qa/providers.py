@@ -17,7 +17,7 @@ def check_ollama_reachable(base_url: str) -> None:
     """Raise a clear error if the Ollama server is not running."""
     url = base_url.rstrip("/") + "/api/tags"
     try:
-        with urlopen(url, timeout=3) as resp:  # noqa: S310 — local Ollama only
+        with urlopen(url, timeout=3) as resp:  # noqa: S310 - local Ollama only
             if resp.status >= 400:
                 raise ConnectionError(f"Ollama returned HTTP {resp.status} at {url}")
     except URLError as exc:

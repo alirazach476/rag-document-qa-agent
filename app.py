@@ -1,11 +1,22 @@
-"""Streamlit UI — one PDF per browser session (cleared on refresh)."""
+"""Streamlit UI - one PDF per browser session (cleared on refresh)."""
 
 from __future__ import annotations
 
+import os
 import shutil
+import sys
 import tempfile
 from dataclasses import replace
 from pathlib import Path
+
+# Streamlit Cloud / Linux images sometimes default to ASCII locales.
+os.environ.setdefault("PYTHONUTF8", "1")
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 import streamlit as st
 
@@ -94,7 +105,7 @@ def _materialize_pdf() -> Path:
 
 
 embed_backend = base_settings.resolved_embedding_backend
-# Avoid importing torch on first paint — use configured preference for labels.
+# Avoid importing torch on first paint - use configured preference for labels.
 embed_device = (
     display_device(base_settings.embedding_device)
     if embed_backend == "local"
@@ -116,7 +127,7 @@ with st.sidebar:
     st.markdown('<p class="side-kicker">Session workspace</p>', unsafe_allow_html=True)
     st.markdown('<p class="side-brand">DocuMind</p>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="side-sub">Private PDF Q&amp;A. One file at a time — '
+        '<p class="side-sub">Private PDF Q&amp;A. One file at a time - '
         "cleared when you refresh.</p>",
         unsafe_allow_html=True,
     )
@@ -223,7 +234,7 @@ if index_btn:
 
     st.session_state.busy = True
     status = st.empty()
-    bar = st.progress(0, text="Starting…")
+    bar = st.progress(0, text="Starting...")
     stats = {"chunks": 0}
 
     def on_progress(done: int, total: int, message: str) -> None:
@@ -239,7 +250,7 @@ if index_btn:
         assert session_settings is not None
         status.info(
             f"Loading embed model (first time only), then indexing "
-            f"**{pdf_path.name}**…"
+            f"**{pdf_path.name}**..."
         )
         build_vectorstore(settings=session_settings, progress=on_progress)
         st.session_state.index_ready = True
@@ -267,7 +278,7 @@ if not st.session_state.messages:
         st.markdown(
             """
             <div class="empty">
-              <h2>PDF ready — index it next</h2>
+              <h2>PDF ready - index it next</h2>
               <p>
                 Click <strong>Index this PDF</strong> in the sidebar.
                 The first index loads the GPU model once; later runs are faster.
@@ -286,7 +297,7 @@ for message in st.session_state.messages:
                     st.write(src["content"])
 
 prompt = st.chat_input(
-    "Ask anything about this PDF…",
+    "Ask anything about this PDF...",
     disabled=st.session_state.busy or not can_ask,
 )
 
@@ -304,7 +315,7 @@ if prompt:
 
     with st.chat_message("assistant"):
         try:
-            with st.spinner("Searching your PDF and composing an answer…"):
+            with st.spinner("Searching your PDF and composing an answer..."):
                 answer, sources = ask(prompt, settings=session_settings)
             st.markdown(answer)
             source_payload = []

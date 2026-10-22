@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 SYSTEM_PROMPT = (
     "You are a precise RAG assistant. Answer ONLY using the provided context. "
     "If the user asks what a word means and that word (or a close form) appears in the "
-    "context—especially in a vocabulary/dictionary style entry—explain it from the context. "
+    "context-especially in a vocabulary/dictionary style entry-explain it from the context. "
     "If the answer is truly not in the context, say you do not know. "
     "Cite sources like [Source N] when relevant.\n\nContext:\n{context}"
 )

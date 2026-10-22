@@ -185,7 +185,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
   font-weight: 600;
 }
 
-/* Hero — full-bleed feel inside content */
+/* Hero - full-bleed feel inside content */
 .hero {
   margin: 0 0 1.5rem;
   padding: 0.2rem 0 0.4rem;
@@ -377,7 +377,7 @@ def render_hero() -> None:
           <div class="hero-brand">DocuMind</div>
           <h1>Ask your PDF.<br/><em>Get grounded answers.</em></h1>
           <p>
-            One document. Local indexing. Cited replies — private to this session.
+            One document. Local indexing. Cited replies - private to this session.
           </p>
         </div>
         """,

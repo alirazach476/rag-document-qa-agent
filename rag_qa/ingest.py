@@ -67,7 +67,7 @@ def load_documents(
 
     for idx, path in enumerate(files, start=1):
         if progress:
-            progress(f"Reading {path.name} ({idx}/{total})…")
+            progress(f"Reading {path.name} ({idx}/{total})...")
         suffix = path.suffix.lower()
         if suffix == ".pdf":
             documents.extend(_load_pdf(path))
