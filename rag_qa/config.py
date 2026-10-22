@@ -40,7 +40,7 @@ class Settings:
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
     groq_api_key: str = ""
-    groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "openai/gpt-oss-20b"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "llama3.2"
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -143,7 +143,7 @@ def get_settings() -> Settings:
         openai_api_key=_env("OPENAI_API_KEY").strip(),
         openai_model=_env("OPENAI_MODEL", "gpt-4o-mini").strip(),
         groq_api_key=_env("GROQ_API_KEY").strip(),
-        groq_model=_env("GROQ_MODEL", "llama-3.1-8b-instant").strip(),
+        groq_model=_env("GROQ_MODEL", "openai/gpt-oss-20b").strip(),
         ollama_base_url=_env("OLLAMA_BASE_URL", "http://127.0.0.1:11434").strip(),
         ollama_model=_env("OLLAMA_MODEL", "llama3.2").strip(),
         embedding_model=_default_embedding_model(resolved),

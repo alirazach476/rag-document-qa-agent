@@ -158,7 +158,7 @@ Get a free key at [console.groq.com/keys](https://console.groq.com/keys), then p
 LLM_PROVIDER = "groq"
 EMBEDDING_BACKEND = "fastembed"
 GROQ_API_KEY = "gsk_..."
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "openai/gpt-oss-20b"
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 ```
 
