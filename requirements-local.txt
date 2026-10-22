@@ -1,0 +1,17 @@
+# Full local install (Ollama + GPU sentence-transformers). Prefer: pip install -e ".[dev]"
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langchain-ollama>=0.2.0
+langchain-huggingface>=0.1.0
+langchain-community>=0.3.0
+langchain-text-splitters>=0.3.0
+sentence-transformers>=3.0.0
+pymupdf>=1.24.0
+rank-bm25>=0.2.2
+faiss-cpu>=1.8.0
+fastembed>=0.4.0
+pypdf>=4.0.0
+python-dotenv>=1.0.0
+streamlit>=1.32.0
+tiktoken>=0.7.0
+openai>=1.40.0
