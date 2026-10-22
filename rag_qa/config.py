@@ -13,7 +13,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 PROVIDERS = frozenset({"ollama", "openai", "groq"})
-EMBEDDING_BACKENDS = frozenset({"auto", "local", "ollama", "openai", "fastembed"})
+EMBEDDING_BACKENDS = frozenset(
+    {"auto", "local", "ollama", "openai", "fastembed", "hash"}
+)
 
 
 def _env(name: str, default: str = "") -> str:
@@ -67,12 +69,17 @@ class Settings:
 
     @property
     def resolved_embedding_backend(self) -> str:
+        # Groq/cloud: never use FastEmbed/HF (ASCII locale crashes on "Downloading…").
+        if self.provider == "groq" and self.embedding_backend in {
+            "auto",
+            "fastembed",
+            "hash",
+        }:
+            return "hash"
         if self.embedding_backend != "auto":
             return self.embedding_backend
         if self.provider == "openai":
             return "openai"
-        if self.provider == "groq":
-            return "fastembed"
         return "local"
 
     def require_provider_ready(self) -> None:
@@ -114,6 +121,8 @@ def _default_embedding_model(backend: str) -> str:
         return "nomic-embed-text"
     if backend == "fastembed":
         return "BAAI/bge-small-en-v1.5"
+    if backend == "hash":
+        return "hashing-trick-384"
     return "sentence-transformers/all-MiniLM-L6-v2"
 
 
@@ -133,7 +142,7 @@ def get_settings() -> Settings:
         if provider == "openai":
             resolved = "openai"
         elif provider == "groq":
-            resolved = "fastembed"
+            resolved = "hash"
         else:
             resolved = "local"
 

@@ -1,10 +1,14 @@
-"""Make Streamlit Cloud's ASCII locale safe for HuggingFace/Rich progress output.
+"""Hardening for Streamlit Community Cloud ASCII locales.
 
-Cloud logs often fail on the literal 'Downloading…' (ellipsis at index 11).
+Cloud workers often use ASCII stdout. HuggingFace/Rich then crash on
+'Downloading…' (ellipsis at index 11). We wrap every write path and, for
+Groq/cloud, avoid those libraries entirely via HashEmbeddings.
 """
 
 from __future__ import annotations
 
+import builtins
+import logging
 import os
 import sys
 
@@ -13,27 +17,27 @@ class _SafeWriter:
     """Proxy that never raises UnicodeEncodeError on write."""
 
     def __init__(self, wrapped: object) -> None:
-        self._wrapped = wrapped
+        object.__setattr__(self, "_wrapped", wrapped)
 
     def write(self, s: object) -> int:
+        wrapped = object.__getattribute__(self, "_wrapped")
         if not isinstance(s, str):
-            return self._wrapped.write(s)  # type: ignore[no-any-return]
+            return wrapped.write(s)  # type: ignore[no-any-return]
         try:
-            return self._wrapped.write(s)  # type: ignore[no-any-return]
+            return wrapped.write(s)  # type: ignore[no-any-return]
         except UnicodeEncodeError:
             safe = s.encode("ascii", "replace").decode("ascii")
-            return self._wrapped.write(safe)  # type: ignore[no-any-return]
+            return wrapped.write(safe)  # type: ignore[no-any-return]
 
     def writelines(self, lines: object) -> None:
         for line in lines:  # type: ignore[attr-defined]
             self.write(line)
 
     def __getattr__(self, name: str) -> object:
-        return getattr(self._wrapped, name)
+        return getattr(object.__getattribute__(self, "_wrapped"), name)
 
 
 def _force_env() -> None:
-    # Force (not setdefault): Streamlit images sometimes pre-set empty/odd values.
     os.environ["PYTHONUTF8"] = "1"
     os.environ["PYTHONIOENCODING"] = "utf-8"
     os.environ["LANG"] = "C.UTF-8"
@@ -59,11 +63,40 @@ def _wrap_stream(name: str) -> None:
     setattr(sys, name, _SafeWriter(stream))
 
 
-def _disable_hub_progress() -> None:
-    try:
-        from huggingface_hub.utils import disable_progress_bars
+def _wrap_logging_streams() -> None:
+    for handler in logging.root.handlers:
+        stream = getattr(handler, "stream", None)
+        if stream is not None and not isinstance(stream, _SafeWriter):
+            try:
+                handler.stream = _SafeWriter(stream)
+            except Exception:
+                pass
 
-        disable_progress_bars()
+
+def _patch_print() -> None:
+    if getattr(builtins.print, "_documind_safe", False):
+        return
+    real_print = builtins.print
+
+    def safe_print(*args: object, **kwargs: object) -> None:
+        try:
+            real_print(*args, **kwargs)
+        except UnicodeEncodeError:
+            safe_args = tuple(
+                a.encode("ascii", "replace").decode("ascii") if isinstance(a, str) else a
+                for a in args
+            )
+            real_print(*safe_args, **kwargs)
+
+    safe_print._documind_safe = True  # type: ignore[attr-defined]
+    builtins.print = safe_print  # type: ignore[assignment]
+
+
+def _patch_locale() -> None:
+    try:
+        import locale
+
+        locale.getpreferredencoding = lambda do_setlocale=True: "utf-8"  # type: ignore[assignment]
     except Exception:
         pass
 
@@ -72,7 +105,9 @@ def apply() -> None:
     _force_env()
     _wrap_stream("stdout")
     _wrap_stream("stderr")
-    _disable_hub_progress()
+    _wrap_logging_streams()
+    _patch_print()
+    _patch_locale()
 
 
 apply()

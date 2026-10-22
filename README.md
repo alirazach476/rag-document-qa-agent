@@ -156,13 +156,12 @@ Get a free key at [console.groq.com/keys](https://console.groq.com/keys), then p
 
 ```toml
 LLM_PROVIDER = "groq"
-EMBEDDING_BACKEND = "fastembed"
+EMBEDDING_BACKEND = "hash"
 GROQ_API_KEY = "gsk_..."
 GROQ_MODEL = "openai/gpt-oss-20b"
-EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 ```
 
-Local PC can still use free Ollama + GPU. Cloud uses Groq (free API) + FastEmbed.
+Local PC can still use free Ollama + GPU. Cloud uses Groq (free API) + download-free hash embeddings (avoids HuggingFace ASCII crashes on Streamlit Cloud).
 
 ### Railway / Render / Docker
 

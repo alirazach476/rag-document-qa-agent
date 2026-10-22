@@ -326,8 +326,11 @@ if prompt:
                 {"role": "assistant", "content": answer, "sources": source_payload}
             )
         except Exception as exc:  # noqa: BLE001
+            import traceback
+
             err = f"Could not answer that question: {exc}"
             st.error(err)
+            st.code(traceback.format_exc())
             st.session_state.messages.append(
                 {"role": "assistant", "content": err, "sources": None}
             )

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from functools import lru_cache
 from typing import Any
 from urllib.error import URLError
@@ -76,13 +75,21 @@ def _cached_local_embeddings(model_name: str, device: str) -> Any:
 
 @lru_cache(maxsize=4)
 def _cached_fastembed(model_name: str) -> Any:
-    """Lightweight CPU embeddings for free cloud deploy (no torch GPU needed)."""
+    """Optional FastEmbed path (can crash on ASCII-only Streamlit Cloud)."""
     from rag_qa.encoding_fix import apply as apply_encoding_fix
 
     apply_encoding_fix()
     from langchain_community.embeddings import FastEmbedEmbeddings
 
     return FastEmbedEmbeddings(model_name=model_name)
+
+
+@lru_cache(maxsize=4)
+def _cached_hash_embeddings(dimensions: int = 384) -> Any:
+    """No-download embeddings safe for Streamlit Community Cloud."""
+    from rag_qa.hash_embeddings import HashEmbeddings
+
+    return HashEmbeddings(dimensions=dimensions)
 
 
 def get_embeddings(settings: Settings) -> Any:
@@ -93,6 +100,9 @@ def get_embeddings(settings: Settings) -> Any:
     if backend == "local":
         device = resolve_torch_device(settings.embedding_device)
         return _cached_local_embeddings(settings.embedding_model, device)
+
+    if backend == "hash":
+        return _cached_hash_embeddings(384)
 
     if backend == "fastembed":
         return _cached_fastembed(settings.embedding_model)
